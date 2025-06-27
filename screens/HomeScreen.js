@@ -1,8 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import {View,FlatList,ActivityIndicator,Button,Text,StyleSheet,TextInput,Alert} from 'react-native';
+import {View,Text,Alert} from 'react-native';
 import { getPokemons, getPokemonDetails } from '../services/api';
 import PokemonCard from '../components/PokemonCard';
 import styles from './HomeScreen.styles';
+import Loader from '../components/ Loader';
+import SearchBar from '../components/SearchBar';
+import Pagination from '../components/Pagination';
+import PokemonList from '../components/PokemonList';
+
 const LIMIT = 20;
 const MAX_PAGES = 1000;
 export default function HomeScreen({ navigation }) {
@@ -70,39 +75,18 @@ export default function HomeScreen({ navigation }) {
 
 	return (
 		<View style={styles.container}>
-			<View style={styles.searchContainer}>
-				<TextInput
-					placeholder="Buscar Pokémon por nombre"
-					value={searchText}
-					onChangeText={setSearchText}
-					style={styles.searchInput}
-				/>
-				<Button title="Buscar" onPress={handleSearch} />
-				{isSearching && <Button title="Limpiar" onPress={handleClearSearch} />}
-			</View>
-
+			<SearchBar searchText={searchText} setSearchText={setSearchText} onSearch={handleSearch} onClear={handleClearSearch} isSearching={isSearching} />
 			{loading ? (
-				<ActivityIndicator size="large" />
+				<Loader />
+			) : pokemonList.length === 0 ? (
+				<Text style={styles.noResults}>No se encontraron Pokémon</Text>
 			) : (
-				<FlatList
-					data={pokemonList}
-					keyExtractor={(item) => item.id.toString()}
-					numColumns={2}
-					renderItem={({ item }) => (
-						<PokemonCard
-							pokemon={item}
-							onPress={() => navigation.navigate('Details', { pokemon: item })}
-						/>
-					)}
-				/>
+				<PokemonList data={pokemonList} onPressItem={(item) => navigation.navigate('Details', { pokemon: item })} />
 			)}
 
 			{/* Controles de página (solo si no estamos en búsqueda) */}
 			{!isSearching && (
-				<View style={styles.pagination}>
-					<Button title="Anterior" onPress={prevPage} disabled={page === 1} />
-					<Button title="Siguiente" onPress={nextPage} disabled={page === MAX_PAGES} />
-				</View>
+				<Pagination page={page} maxPages={MAX_PAGES} onNext={nextPage} onPrev={prevPage} />
 			)}
 		</View>
 	);
